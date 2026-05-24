@@ -7,15 +7,26 @@ from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
 
-# Create async engine (URL is already converted to async format by settings validator)
+# Create async engine. If NEON_DATABASE_URL is missing we still build a stub engine
+# against a local sqlite URL so the app can import and serve /health; calls that
+# actually hit Postgres will fail at request time with a clear error.
+_db_url = settings.NEON_DATABASE_URL or "sqlite+aiosqlite:///./_missing.db"
+_is_postgres = _db_url.startswith("postgresql")
+
 engine = create_async_engine(
-    settings.NEON_DATABASE_URL,
+    _db_url,
     echo=settings.ENVIRONMENT == "development",
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,  # Verify connections before using
-    pool_recycle=3600,  # Recycle connections after 1 hour
-    connect_args={"ssl": "require"},  # Require SSL for Neon
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    **(
+        {
+            "pool_size": 10,
+            "max_overflow": 20,
+            "connect_args": {"ssl": "require"},
+        }
+        if _is_postgres
+        else {}
+    ),
 )
 
 # Create async session factory

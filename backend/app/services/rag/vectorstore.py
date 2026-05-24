@@ -23,13 +23,23 @@ class VectorStoreService:
     """Service for managing Qdrant vector database operations."""
 
     def __init__(self):
-        """Initialize Qdrant client."""
-        self.client = QdrantClient(
-            url=QDRANT_URL,
-            api_key=QDRANT_API_KEY,
-            timeout=30,
-        )
+        """Initialize Qdrant client lazily so import never fails on missing config."""
+        self._client: Optional[QdrantClient] = None
         self.collection_name = QDRANT_COLLECTION_NAME
+
+    @property
+    def client(self) -> QdrantClient:
+        if self._client is None:
+            if not QDRANT_URL:
+                raise RuntimeError(
+                    "QDRANT_URL is not set. Configure it in the deployment environment."
+                )
+            self._client = QdrantClient(
+                url=QDRANT_URL,
+                api_key=QDRANT_API_KEY,
+                timeout=30,
+            )
+        return self._client
 
     async def create_collection_if_not_exists(self) -> bool:
         """

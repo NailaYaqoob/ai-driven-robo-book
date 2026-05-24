@@ -33,9 +33,12 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("application_startup", version=settings.VERSION)
 
-    # Initialize database
-    await init_db()
-    logger.info("database_initialized")
+    # Initialize database — log failure but don't crash the app so /health stays reachable
+    try:
+        await init_db()
+        logger.info("database_initialized")
+    except Exception as e:
+        logger.error("database_initialization_failed", error=str(e))
 
     # Create Qdrant collection if not exists
     try:
