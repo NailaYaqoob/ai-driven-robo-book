@@ -3,19 +3,27 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--ifm-color-primary);
-  color: var(--ifm-color-primary);
+  background-color: var(--ifm-color-emphasis-200);
+  border: none;
+  color: var(--ifm-color-emphasis-900);
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.875rem;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
 }
 
 .personalizeButton:hover {
-  background-color: var(--ifm-color-primary);
-  color: white;
+  background-color: var(--ifm-color-emphasis-300);
+}
+
+[data-theme='dark'] .personalizeButton {
+  background-color: var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-900);
+}
+
+[data-theme='dark'] .personalizeButton:hover {
+  background-color: var(--ifm-color-emphasis-400);
 }
 
 .modalOverlay {
