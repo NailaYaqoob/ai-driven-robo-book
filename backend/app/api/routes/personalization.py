@@ -2,7 +2,8 @@
 
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.user import User
@@ -20,23 +21,24 @@ router = APIRouter(prefix="/api/personalization", tags=["personalization"])
 @router.get("/profile", response_model=PersonalizationProfileResponse)
 async def get_personalization_profile(
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
     Get current user's personalization preferences.
 
     Requires authentication. Returns persona, skill level, learning pace, and language preference.
     """
-    preference = db.query(UserPreference).filter(
-        UserPreference.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(UserPreference).where(UserPreference.user_id == current_user.id)
+    )
+    preference = result.scalar_one_or_none()
 
     if not preference:
         # Create default preferences if they don't exist
         preference = UserPreference(user_id=current_user.id)
         db.add(preference)
-        db.commit()
-        db.refresh(preference)
+        await db.commit()
+        await db.refresh(preference)
 
     return PersonalizationProfileResponse.model_validate(preference)
 
@@ -45,7 +47,7 @@ async def get_personalization_profile(
 async def update_personalization_profile(
     request: UpdatePersonalizationRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
     Update user's personalization preferences.
@@ -60,9 +62,10 @@ async def update_personalization_profile(
 
     Only provided fields will be updated (partial update).
     """
-    preference = db.query(UserPreference).filter(
-        UserPreference.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(UserPreference).where(UserPreference.user_id == current_user.id)
+    )
+    preference = result.scalar_one_or_none()
 
     if not preference:
         raise HTTPException(
@@ -75,8 +78,8 @@ async def update_personalization_profile(
     for field, value in update_data.items():
         setattr(preference, field, value)
 
-    db.commit()
-    db.refresh(preference)
+    await db.commit()
+    await db.refresh(preference)
 
     return PersonalizationProfileResponse.model_validate(preference)
 
@@ -85,7 +88,7 @@ async def update_personalization_profile(
 async def sync_from_local_storage(
     request: LocalStorageSyncRequest,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
     Sync personalization preferences from localStorage to backend on login.
@@ -95,9 +98,10 @@ async def sync_from_local_storage(
 
     This ensures preferences persist across devices after login.
     """
-    preference = db.query(UserPreference).filter(
-        UserPreference.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(UserPreference).where(UserPreference.user_id == current_user.id)
+    )
+    preference = result.scalar_one_or_none()
 
     if not preference:
         preference = UserPreference(user_id=current_user.id)
@@ -113,7 +117,7 @@ async def sync_from_local_storage(
     if request.language_preference:
         preference.language_preference = request.language_preference
 
-    db.commit()
-    db.refresh(preference)
+    await db.commit()
+    await db.refresh(preference)
 
     return PersonalizationProfileResponse.model_validate(preference)

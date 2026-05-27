@@ -1,10 +1,12 @@
 """Authentication API routes."""
 
+import uuid
 from datetime import datetime, timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
 
 from app.core.database import get_db
@@ -33,7 +35,7 @@ def create_access_token(user_id: str) -> str:
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ) -> User:
     """Dependency to get current authenticated user from JWT."""
     credentials_exception = HTTPException(
@@ -50,7 +52,14 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == user_id).first()
+    # `sub` is the stringified UUID; cast back so it binds to the UUID column.
+    try:
+        user_uuid = uuid.UUID(str(user_id))
+    except (ValueError, TypeError):
+        raise credentials_exception
+
+    result = await db.execute(select(User).where(User.id == user_uuid))
+    user = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
 
@@ -60,7 +69,7 @@ async def get_current_user(
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def signup(
     request: SignupRequest,
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
     Create a new user account with personalization preferences.
@@ -76,7 +85,8 @@ async def signup(
     - **learning_goal**: Primary learning objective
     """
     # Check if user already exists
-    existing_user = db.query(User).filter(User.email == request.email).first()
+    result = await db.execute(select(User).where(User.email == request.email))
+    existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -91,7 +101,7 @@ async def signup(
         full_name=request.full_name
     )
     db.add(user)
-    db.flush()  # Get user.id before committing
+    await db.flush()  # Get user.id before committing
 
     # Create user preferences
     preference = UserPreference(
@@ -105,8 +115,8 @@ async def signup(
         learning_goal=request.learning_goal
     )
     db.add(preference)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
     # Generate access token
     access_token = create_access_token(str(user.id))
@@ -120,7 +130,7 @@ async def signup(
 @router.post("/signin", response_model=TokenResponse)
 async def signin(
     request: SigninRequest,
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
     Sign in with email and password.
@@ -131,7 +141,8 @@ async def signin(
     Returns JWT access token valid for 24 hours.
     """
     # Find user
-    user = db.query(User).filter(User.email == request.email).first()
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
