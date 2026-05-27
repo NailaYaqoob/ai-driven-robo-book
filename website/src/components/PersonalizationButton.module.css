@@ -40,7 +40,7 @@
 }
 
 .modalContent {
-  background: var(--ifm-background-color);
+  background: var(--ifm-background-surface-color);
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
