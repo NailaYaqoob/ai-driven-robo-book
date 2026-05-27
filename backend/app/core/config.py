@@ -19,7 +19,10 @@ class Settings(BaseSettings):
 
     # CORS Configuration
     ALLOWED_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "https://yourusername.github.io"],
+        default=[
+            "http://localhost:3000",
+            "https://ai-driven-robo-book.vercel.app",
+        ],
         description="Comma-separated list of allowed origins for CORS",
     )
 

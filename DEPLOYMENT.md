@@ -4,71 +4,87 @@ Complete guide for deploying the Physical AI & Humanoid Robotics Interactive Tex
 
 ## Table of Contents
 
-1. [Frontend Deployment (GitHub Pages)](#frontend-deployment-github-pages)
-2. [Backend Deployment (Railway)](#backend-deployment-railway)
-3. [Troubleshooting](#troubleshooting)
-4. [Post-Deployment Checklist](#post-deployment-checklist)
+1. [Architecture Overview](#architecture-overview)
+2. [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
+3. [Backend Deployment (Railway)](#backend-deployment-railway)
+4. [Connecting Frontend and Backend](#connecting-frontend-and-backend)
+5. [Troubleshooting](#troubleshooting)
+6. [Post-Deployment Checklist](#post-deployment-checklist)
 
 ---
 
-## Frontend Deployment (GitHub Pages)
+## Architecture Overview
+
+| Layer | Technology | Host | URL |
+| --- | --- | --- | --- |
+| Frontend | Docusaurus (static site) | **Vercel** | https://ai-driven-robo-book.vercel.app |
+| Backend | FastAPI | **Railway** | https://ai-driven-robo-book-production.up.railway.app |
+
+The frontend is a static Docusaurus build. The browser calls the backend
+directly using the build-time variable `REACT_APP_API_URL`. The backend allows
+the frontend origin via CORS (`ALLOWED_ORIGINS`). Wiring these two values
+correctly is what "connects" the two halves — see
+[Connecting Frontend and Backend](#connecting-frontend-and-backend).
+
+---
+
+## Frontend Deployment (Vercel)
 
 ### Prerequisites
 
-- GitHub repository with code pushed to `main` branch
-- GitHub Actions enabled in repository settings
+- GitHub repository with code pushed to `main`
+- A Vercel account linked to the GitHub repo
 - Node.js 18+ installed locally for testing
 
 ### Setup Steps
 
-#### 1. Enable GitHub Pages
+#### 1. Import the Project into Vercel
 
-1. Go to your repository on GitHub
-2. Click **Settings** (top navigation)
-3. In the left sidebar, click **Pages**
-4. Under "Build and deployment":
-   - **Source**: Select **GitHub Actions**
-5. Click **Save**
+1. Go to https://vercel.com/new
+2. Select **Import Git Repository** and pick `ai-driven-robo-book`
+3. In the project configuration:
+   - **Root Directory**: `website`
+   - **Framework Preset**: Docusaurus (auto-detected)
+   - **Build Command**: `npm run build` (from `website/vercel.json`)
+   - **Output Directory**: `build`
+   - **Install Command**: `npm ci`
 
-#### 2. Verify Workflow Configuration
+> The `website/vercel.json` file already pins these build settings, so the
+> only manual step in the UI is setting **Root Directory** to `website`.
 
-The deployment workflow is located at `.github/workflows/deploy.yml`. It includes:
+#### 2. Add Environment Variables
 
-- ✅ **Automatic Triggers**: Runs on push to `main` or `master` branches
-- ✅ **Manual Trigger**: Can be triggered from GitHub Actions UI
-- ✅ **Quality Gates**: Linting, type checking, link validation
-- ✅ **Production Build**: Optimized for performance
-- ✅ **Artifact Upload**: Builds uploaded to GitHub Pages
+In Vercel → Project → **Settings → Environment Variables**, add the backend URL
+for the **Production** (and Preview) environments:
+
+```bash
+REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app
+```
+
+> This variable is injected into the browser bundle at build time
+> (see `website/docusaurus.config.js`). Without it, the site falls back to
+> `http://localhost:8000` and the chatbot/auth/personalization features break
+> in production.
 
 #### 3. Test Locally Before Deploying
 
 ```bash
-# Navigate to website directory
 cd website
-
-# Install dependencies
 npm install
 
-# Run linting
-npm run lint
+# Build against the live backend exactly like Vercel does
+REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app npm run build
 
-# Run type checking
-npm run typecheck
-
-# Build production bundle
-npm run build
-
-# Serve production build locally
+# Serve the production build locally
 npm run serve
 ```
 
 Visit `http://localhost:3000` to test the production build.
 
-#### 4. Deploy to GitHub Pages
+#### 4. Deploy
 
-**Option A: Automatic Deployment**
-
-Simply push to the `main` branch:
+**Automatic (recommended):** Vercel deploys every push to `main` to production
+and every other branch/PR to a preview URL:
 
 ```bash
 git add .
@@ -76,60 +92,28 @@ git commit -m "feat: update content for deployment"
 git push origin main
 ```
 
-**Option B: Manual Deployment**
+**Manual:** From the Vercel dashboard, open the project and click
+**Deployments → Redeploy**, or run `vercel --prod` with the Vercel CLI from the
+`website/` directory.
 
-1. Go to **Actions** tab in GitHub repository
-2. Click **Deploy to GitHub Pages** workflow
-3. Click **Run workflow** button
-4. Select `main` branch
-5. Click **Run workflow**
+#### 5. Access Your Deployed Site
 
-#### 5. Monitor Deployment
 
-1. Go to **Actions** tab
-2. Click on the latest workflow run
-3. Monitor build progress:
-   - ✅ Install dependencies
-   - ✅ Run linting (ESLint)
-   - ✅ Run type checking (TypeScript)
-   - ✅ Build website
-   - ✅ Validate links
-   - ✅ Upload artifact
-   - ✅ Deploy to GitHub Pages
 
-Expected completion time: **3-5 minutes**
 
-#### 6. Access Your Deployed Site
-
-**Default URL Format:**
 ```
-https://<username>.github.io/<repository-name>/
-```
-
-**For This Project:**
-```
-https://nailaimran.github.io/learn-humanoid-robotics/
+https://ai-driven-robo-book.vercel.app
 ```
 
 ### Custom Domain (Optional)
 
-To use a custom domain like `textbook.example.com`:
-
-1. Add a `CNAME` file to `website/static/CNAME`:
-   ```
-   textbook.example.com
-   ```
-
-2. In your domain registrar's DNS settings, add:
-   ```
-   Type: CNAME
-   Name: textbook
-   Value: <username>.github.io
-   ```
-
-3. In GitHub Pages settings:
-   - Enter your custom domain
-   - Enable "Enforce HTTPS"
+1. In Vercel → Project → **Settings → Domains**, add your domain
+   (e.g. `textbook.example.com`).
+2. Add the DNS record Vercel shows you at your registrar (usually a `CNAME`
+   pointing to `cname.vercel-dns.com`).
+3. Vercel provisions HTTPS automatically.
+4. **Important:** also add the new domain to the backend `ALLOWED_ORIGINS`
+   (see [Connecting Frontend and Backend](#connecting-frontend-and-backend)).
 
 ---
 
@@ -183,7 +167,15 @@ BETTER_AUTH_SECRET=xxxxxxxxxxxxx  # Generate with: openssl rand -hex 32
 JWT_SECRET_KEY=xxxxxxxxxxxxx      # Generate with: openssl rand -hex 32
 PYTHON_VERSION=3.11
 PORT=8000
+
+# CORS — allow the frontend origin(s) to call this API.
+# Comma-separated. Must include your Vercel production domain.
+ALLOWED_ORIGINS=https://ai-driven-robo-book.vercel.app,http://localhost:3000
 ```
+
+> Vercel preview deployments (`*.vercel.app`) are matched automatically by a
+> regex in `backend/app/main.py`, so you only need to list your production
+> domain (and `localhost:3000` for local dev) here.
 
 #### 5. Set Build Configuration
 
@@ -223,15 +215,57 @@ railway run alembic upgrade head
 
 #### 8. Access Backend API
 
-Railway provides a URL like:
+This project's backend is deployed at:
 ```
-https://learn-humanoid-robotics-production.up.railway.app
+https://ai-driven-robo-book-production.up.railway.app
 ```
 
 API documentation available at:
 ```
-https://<your-railway-url>/docs
+https://ai-driven-robo-book-production.up.railway.app/docs
 ```
+
+Health check:
+```
+https://ai-driven-robo-book-production.up.railway.app/health
+```
+
+---
+
+## Connecting Frontend and Backend
+
+The two halves connect through exactly two values that must agree:
+
+| Value | Where it lives | Set it to |
+| --- | --- | --- |
+| `REACT_APP_API_URL` | Vercel env var (frontend build) | `https://ai-driven-robo-book-production.up.railway.app` |
+| `ALLOWED_ORIGINS` | Railway env var (backend CORS) | `https://ai-driven-robo-book.vercel.app,http://localhost:3000` |
+
+**How it works**
+
+1. At build time, `website/docusaurus.config.js` injects `REACT_APP_API_URL`
+   into the browser bundle via webpack `DefinePlugin`. All frontend API clients
+   (`RAGChatbot.tsx`, `lib/auth-client.ts`, `context/PersonalizationContext.tsx`)
+   read this single variable. If unset, they fall back to `http://localhost:8000`.
+2. The browser calls `${REACT_APP_API_URL}/api/...` directly.
+3. The backend's CORS middleware (`backend/app/main.py`) allows the request only
+   if the request `Origin` is in `ALLOWED_ORIGINS` or matches the `*.vercel.app`
+   regex (which covers preview deployments).
+
+**Checklist to wire them up**
+
+- [ ] Set `REACT_APP_API_URL` in Vercel → Settings → Environment Variables, then
+      **redeploy** the frontend (env vars only apply to new builds).
+- [ ] Set `ALLOWED_ORIGINS` in Railway → Variables to include the Vercel domain.
+- [ ] Verify end-to-end:
+      ```bash
+      # CORS preflight should echo back the allowed origin
+      curl -i -X OPTIONS \
+        -H "Origin: https://ai-driven-robo-book.vercel.app" \
+        -H "Access-Control-Request-Method: POST" \
+        https://ai-driven-robo-book-production.up.railway.app/api/rag/query
+      ```
+      Look for `access-control-allow-origin: https://ai-driven-robo-book.vercel.app`.
 
 ---
 
@@ -262,31 +296,31 @@ npm run build
    - Use absolute paths like `/docs/introduction/` instead of `./`
    - Ensure document IDs match actual file structure
 
-#### 404 on GitHub Pages After Deployment
+#### 404 / Broken Routing on Vercel
 
 **Causes:**
-- Incorrect `baseUrl` in `docusaurus.config.js`
-- GitHub Pages source not set to "GitHub Actions"
+- Wrong `baseUrl` in `docusaurus.config.js` (must be `/` for a root domain)
+- Vercel **Root Directory** not set to `website`
 
 **Solution:**
 1. Check `website/docusaurus.config.js`:
    ```javascript
-   baseUrl: '/learn-humanoid-robotics/',  // Must match repo name
+   url: 'https://ai-driven-robo-book.vercel.app',
+   baseUrl: '/',
    ```
+2. Verify Vercel → Settings → General → **Root Directory** = `website`.
 
-2. Verify GitHub Pages settings:
-   - Settings → Pages → Source: **GitHub Actions**
+#### Chatbot / Auth / Personalization Fails in Production
 
-#### Styles/Images Not Loading
+**Symptom:** Network tab shows requests going to `http://localhost:8000`, or
+CORS errors in the console.
 
-**Cause:** Incorrect `baseUrl` configuration
+**Cause:** `REACT_APP_API_URL` was not set at build time, or `ALLOWED_ORIGINS`
+on the backend doesn't include the Vercel domain.
 
-**Solution:**
-Update `docusaurus.config.js`:
-```javascript
-url: 'https://nailaimran.github.io',
-baseUrl: '/learn-humanoid-robotics/',
-```
+**Solution:** See
+[Connecting Frontend and Backend](#connecting-frontend-and-backend). Remember to
+**redeploy** the frontend after changing the Vercel env var.
 
 ### Backend Issues
 
@@ -329,7 +363,7 @@ baseUrl: '/learn-humanoid-robotics/',
 
 ### Frontend Verification
 
-- [ ] Site loads at GitHub Pages URL
+- [ ] Site loads at https://ai-driven-robo-book.vercel.app
 - [ ] All pages accessible via navigation
 - [ ] Search functionality works
 - [ ] Images and diagrams render correctly
@@ -347,7 +381,7 @@ baseUrl: '/learn-humanoid-robotics/',
 npm install -g lighthouse
 
 # Run audit
-lighthouse https://nailaimran.github.io/learn-humanoid-robotics/ --view
+lighthouse https://ai-driven-robo-book.vercel.app --view
 ```
 
 ### Backend Verification
@@ -363,8 +397,8 @@ lighthouse https://nailaimran.github.io/learn-humanoid-robotics/ --view
 
 **Test Backend Health:**
 ```bash
-curl https://<your-railway-url>/health
-# Expected: {"status": "healthy"}
+curl https://ai-driven-robo-book-production.up.railway.app/health
+# Expected: {"status": "healthy"} (or "degraded" if Qdrant/DB not yet seeded)
 ```
 
 ### Integration Testing
@@ -377,15 +411,15 @@ curl https://<your-railway-url>/health
 
 ### Monitoring Setup
 
-1. **GitHub Actions**: Monitor deployment status
-   - GitHub repo → Actions tab
+1. **Vercel**: Monitor frontend builds and deployments
+   - Vercel dashboard → Project → Deployments / Analytics
 
 2. **Railway Metrics**: Monitor backend performance
    - Railway dashboard → Metrics tab
 
 3. **Error Tracking** (Optional):
    - Sentry for backend errors
-   - Google Analytics for frontend analytics
+   - Vercel Web Analytics for frontend analytics
 
 ---
 
@@ -399,10 +433,10 @@ git revert HEAD
 git push origin main
 ```
 
-**Option 2: Re-deploy Previous Commit**
-1. Go to Actions tab
-2. Find previous successful deployment
-3. Click "Re-run jobs"
+**Option 2: Promote a Previous Vercel Deployment**
+1. Vercel dashboard → Project → **Deployments**
+2. Find a previous successful deployment
+3. Open the **⋯** menu → **Promote to Production**
 
 ### Backend Rollback
 
@@ -418,32 +452,26 @@ railway rollback
 
 ---
 
-## Continuous Integration
+## Continuous Integration / Continuous Deployment
 
-The project uses GitHub Actions for CI/CD:
+Deployment is fully managed by the hosting platforms — no GitHub Actions
+workflow is required:
 
-- **Linting**: ESLint checks code quality
-- **Type Checking**: TypeScript ensures type safety
-- **Link Validation**: Docusaurus validates all internal links
-- **Build**: Production-optimized build
-- **Deploy**: Automatic deployment to GitHub Pages
-
-**Workflow Status Badge:**
-
-Add to README.md:
-```markdown
-![Deploy](https://github.com/NailaImran/learn-humanoid-robotics/actions/workflows/deploy.yml/badge.svg)
-```
+- **Frontend (Vercel)**: every push to `main` triggers a production build and
+  deploy; every branch/PR gets a preview URL. Vercel runs `npm ci` and
+  `npm run build` (a failed build blocks the deploy).
+- **Backend (Railway)**: every push to `main` rebuilds and redeploys the
+  FastAPI service.
 
 ---
 
 ## Support
 
-- **Issues**: https://github.com/NailaImran/learn-humanoid-robotics/issues
-- **Discussions**: https://github.com/NailaImran/learn-humanoid-robotics/discussions
+- **Issues**: https://github.com/NailaYaqoob/ai-driven-robo-book/issues
+- **Discussions**: https://github.com/NailaYaqoob/ai-driven-robo-book/discussions
 - **Documentation**: See README.md and specs/ directory
 
 ---
 
-**Last Updated**: 2025-12-28
-**Version**: 1.0.0
+**Last Updated**: 2026-05-27
+**Version**: 1.1.0

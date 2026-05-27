@@ -14,7 +14,7 @@ A comprehensive, interactive textbook for learning Physical AI and Humanoid Robo
 ## 🏗️ Project Structure
 
 ```
-learn-humanoid-robotics/
+ai-driven-robo-book/
 ├── website/              # Docusaurus frontend
 │   ├── docs/            # Textbook content (MDX)
 │   ├── src/             # React components, hooks, context
@@ -110,50 +110,44 @@ API documentation available at `http://localhost:8000/docs`
 - Better-Auth (authentication)
 
 **Deployment**
-- GitHub Pages (frontend)
-- Railway (backend)
-- GitHub Actions (CI/CD)
+- Vercel (frontend) — https://ai-driven-robo-book.vercel.app
+- Railway (backend) — https://ai-driven-robo-book-production.up.railway.app
 
 ## 🚢 Deployment
 
-### GitHub Pages (Frontend)
+> Full guide: [DEPLOYMENT.md](DEPLOYMENT.md) · Quick start: [QUICKSTART-DEPLOY.md](QUICKSTART-DEPLOY.md)
 
-The frontend is automatically deployed to GitHub Pages on every push to the `main` branch.
+### Vercel (Frontend)
+
+The frontend is automatically deployed to **Vercel** on every push to the `main`
+branch (preview deploys for other branches/PRs).
 
 **Setup Instructions:**
 
-1. **Enable GitHub Pages** in your repository:
-   - Go to repository **Settings** → **Pages**
-   - Under "Build and deployment":
-     - Source: **GitHub Actions**
-   - Save settings
+1. **Import the repo** at https://vercel.com/new and set **Root Directory** to
+   `website`. Build settings come from `website/vercel.json`.
 
-2. **Configure Repository Secrets** (if using custom domain):
-   - Go to **Settings** → **Secrets and variables** → **Actions**
-   - Add any required secrets (currently none needed for basic deployment)
+2. **Set the backend URL** in Vercel → Settings → Environment Variables (this is
+   what connects the frontend to the API):
+   ```bash
+   REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app
+   ```
+   Redeploy after adding it — env vars only apply to new builds.
 
-3. **Trigger Deployment**:
+3. **Deploy** by pushing to `main`:
    ```bash
    git add .
-   git commit -m "Deploy to GitHub Pages"
+   git commit -m "Deploy frontend"
    git push origin main
    ```
 
-4. **Access Your Site**:
-   - Default URL: `https://<username>.github.io/<repository-name>/`
-   - This project: `https://nailaimran.github.io/learn-humanoid-robotics/`
-
-**Workflow Features:**
-- ✅ Automatic build on push to `main`
-- ✅ Linting and type checking
-- ✅ Link validation during build
-- ✅ Production-optimized build
-- ✅ Manual deployment trigger via GitHub UI
+4. **Access your site**: https://ai-driven-robo-book.vercel.app
 
 **Local Build Test:**
 ```bash
 cd website
-npm run build
+npm ci
+REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app npm run build
 npm run serve  # Test production build locally
 ```
 

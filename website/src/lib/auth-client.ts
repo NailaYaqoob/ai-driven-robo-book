@@ -1,5 +1,6 @@
-// Simple auth client that works with our FastAPI backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Simple auth client that works with our FastAPI backend.
+// REACT_APP_API_URL is injected at build time (see docusaurus.config.js).
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export const authClient = {
   async signIn({ email, password }: { email: string; password: string }) {

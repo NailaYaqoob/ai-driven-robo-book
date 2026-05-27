@@ -10,16 +10,14 @@ const config = {
   tagline: 'A comprehensive 13-week curriculum for learning Physical AI and building autonomous humanoid robots',
   favicon: 'img/favicon.ico',
 
-  // Set the production url of your site here
-  url: 'https://nailaimran.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
+  // Set the production url of your site here (Vercel deployment)
+  url: 'https://ai-driven-robo-book.vercel.app',
+  // Served from the domain root on Vercel
   baseUrl: '/',
 
-  // GitHub pages deployment config.
-  organizationName: 'NailaImran', // Usually your GitHub org/user name.
-  projectName: 'ai-driven-robo-book', // Usually your repo name.
-  deploymentBranch: 'gh-pages',
+  // Repo metadata (used for edit links, etc.)
+  organizationName: 'NailaYaqoob', // GitHub org/user name.
+  projectName: 'ai-driven-robo-book', // Repo name.
   trailingSlash: false,
 
   onBrokenLinks: 'warn',
@@ -68,6 +66,30 @@ const config = {
   markdown: {
     mermaid: true,
   },
+
+  plugins: [
+    // Docusaurus does not expose arbitrary env vars to browser code by default.
+    // Inject REACT_APP_API_URL (the backend base URL) at build time so the
+    // chatbot, auth, and personalization clients can reach the deployed API.
+    // Set REACT_APP_API_URL in Vercel → Project → Settings → Environment Variables.
+    function injectApiUrl() {
+      return {
+        name: 'inject-api-url',
+        configureWebpack() {
+          const webpack = require('webpack');
+          return {
+            plugins: [
+              new webpack.DefinePlugin({
+                'process.env.REACT_APP_API_URL': JSON.stringify(
+                  process.env.REACT_APP_API_URL || 'http://localhost:8000'
+                ),
+              }),
+            ],
+          };
+        },
+      };
+    },
+  ],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */

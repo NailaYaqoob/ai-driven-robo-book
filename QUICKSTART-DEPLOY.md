@@ -1,145 +1,118 @@
 # Quick Deploy Guide
 
-**5-Minute Setup for GitHub Pages Deployment**
+**5-Minute Setup — Frontend on Vercel, Backend on Railway**
+
+| Layer | Host | URL |
+| --- | --- | --- |
+| Frontend (Docusaurus) | Vercel | https://ai-driven-robo-book.vercel.app |
+| Backend (FastAPI) | Railway | https://ai-driven-robo-book-production.up.railway.app |
+
+> Full reference: [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## Prerequisites ✓
 
 - [x] Code pushed to GitHub repository
 - [x] Build passes locally (`npm run build` succeeds)
-- [x] No broken links (verified ✓)
+- [x] Vercel account linked to the GitHub repo
+- [x] Railway service running the backend
 
-## Steps to Deploy
+## Steps to Deploy the Frontend (Vercel)
 
-### 1. Enable GitHub Pages (One-Time Setup)
+### 1. Import the Project (one-time)
 
-1. Go to your repository: https://github.com/NailaImran/learn-humanoid-robotics
-2. Click **Settings** → **Pages**
-3. Under "Build and deployment":
-   - Source: **GitHub Actions** ⚙️
-4. Click **Save**
+1. Go to https://vercel.com/new and import `ai-driven-robo-book`
+2. Set **Root Directory** to `website`
+3. Framework preset (Docusaurus) and build settings come from
+   `website/vercel.json` — no other changes needed
 
-### 2. Push to Main Branch
+### 2. Add the Backend URL (one-time, required)
+
+Vercel → Project → **Settings → Environment Variables**:
+
+```bash
+REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app
+```
+
+> Without this, the chatbot/auth/personalization features call
+> `http://localhost:8000` and fail in production. Env var changes only apply to
+> **new builds**, so redeploy after adding it.
+
+### 3. Push to Main Branch
 
 ```bash
 git add .
-git commit -m "Deploy: Ready for GitHub Pages"
+git commit -m "Deploy: frontend on Vercel"
 git push origin main
 ```
 
-### 3. Monitor Deployment
-
-1. Go to **Actions** tab: https://github.com/NailaImran/learn-humanoid-robotics/actions
-2. Watch the "Deploy to GitHub Pages" workflow
-3. Wait 3-5 minutes for completion
+Vercel deploys `main` to production automatically and every branch/PR to a
+preview URL.
 
 ### 4. Access Your Site
 
 🌐 **Your Live Site:**
 ```
-https://nailaimran.github.io/learn-humanoid-robotics/
+https://ai-driven-robo-book.vercel.app
 ```
 
 ---
 
-## What Happens During Deployment?
+## Connect Frontend ↔ Backend
 
-The GitHub Actions workflow automatically:
+Two values must agree:
 
-1. ✅ **Checks out code** from your repository
-2. ✅ **Installs dependencies** (`npm ci`)
-3. ✅ **Runs linting** (ESLint checks)
-4. ✅ **Runs type checking** (TypeScript validation)
-5. ✅ **Builds the site** (`npm run build`)
-6. ✅ **Validates links** (ensures no broken links)
-7. ✅ **Uploads artifacts** to GitHub Pages
-8. ✅ **Deploys to production** (live site)
+| Value | Where | Set to |
+| --- | --- | --- |
+| `REACT_APP_API_URL` | Vercel env var | `https://ai-driven-robo-book-production.up.railway.app` |
+| `ALLOWED_ORIGINS` | Railway env var | `https://ai-driven-robo-book.vercel.app,http://localhost:3000` |
 
-**Total Time:** ~3-5 minutes
+Verify CORS end-to-end:
+
+```bash
+curl -i -X OPTIONS \
+  -H "Origin: https://ai-driven-robo-book.vercel.app" \
+  -H "Access-Control-Request-Method: POST" \
+  https://ai-driven-robo-book-production.up.railway.app/api/rag/query
+# Look for: access-control-allow-origin: https://ai-driven-robo-book.vercel.app
+```
 
 ---
 
 ## Verify Deployment
 
-### Quick Checks
-
 ```bash
-# 1. Check deployment status
-# Go to: https://github.com/NailaImran/learn-humanoid-robotics/actions
+# Frontend loads
+open https://ai-driven-robo-book.vercel.app
 
-# 2. Test your live site
-# Visit: https://nailaimran.github.io/learn-humanoid-robotics/
-
-# 3. Run Lighthouse audit (optional)
-npx lighthouse https://nailaimran.github.io/learn-humanoid-robotics/ --view
+# Backend healthy
+curl https://ai-driven-robo-book-production.up.railway.app/health
 ```
 
-### Expected Results
-
+Expected:
 - ✅ Site loads without errors
-- ✅ All pages accessible via navigation
-- ✅ Images and diagrams render correctly
-- ✅ Search functionality works
-- ✅ Mobile responsive
-- ✅ Lighthouse scores:
-  - Performance: >90
-  - Accessibility: >95
+- ✅ Chatbot returns answers (no CORS / localhost errors in the console)
+- ✅ Backend `/health` returns `healthy` or `degraded`
 
 ---
 
 ## Common Issues & Quick Fixes
 
-### ❌ 404 Error on Site
+### ❌ Chatbot/auth hit `localhost:8000` in production
+`REACT_APP_API_URL` wasn't set at build time. Add it in Vercel and **redeploy**.
 
-**Cause:** Wrong `baseUrl` in config
+### ❌ CORS errors in the browser console
+Add the Vercel domain to `ALLOWED_ORIGINS` in Railway and redeploy the backend.
 
-**Fix:**
-1. Check `website/docusaurus.config.js`:
-   ```javascript
-   baseUrl: '/learn-humanoid-robotics/',  // Must match repo name
-   ```
-2. Rebuild and redeploy
+### ❌ 404 / broken routing on Vercel
+Confirm Vercel **Root Directory** = `website` and `baseUrl: '/'` in
+`website/docusaurus.config.js`.
 
-### ❌ Build Fails in GitHub Actions
-
-**Cause:** Dependency or lint errors
-
-**Fix:**
-```bash
-# Test locally first
-cd website
-npm run lint
-npm run typecheck
-npm run build
-
-# Fix any errors, then push again
-```
-
-### ❌ Styles/Images Not Loading
-
-**Cause:** Incorrect base URL
-
-**Fix:** Verify in `docusaurus.config.js`:
-```javascript
-url: 'https://nailaimran.github.io',
-baseUrl: '/learn-humanoid-robotics/',
-organizationName: 'NailaImran',
-projectName: 'learn-humanoid-robotics',
-```
-
----
-
-## Manual Deployment (Alternative)
-
-If automatic deployment doesn't work:
-
+### ❌ Build fails on Vercel
+Reproduce locally:
 ```bash
 cd website
-
-# Build locally
-npm run build
-
-# Deploy using Docusaurus CLI
-GIT_USER=NailaImran npm run deploy
+npm ci
+REACT_APP_API_URL=https://ai-driven-robo-book-production.up.railway.app npm run build
 ```
 
 ---
@@ -147,28 +120,13 @@ GIT_USER=NailaImran npm run deploy
 ## Update Content After Deployment
 
 1. Edit MDX files in `website/docs/`
-2. Test locally:
-   ```bash
-   npm start  # Development mode
-   npm run build  # Production test
-   ```
-3. Push to GitHub:
+2. Test locally (`npm start`, then `npm run build`)
+3. Push to GitHub — Vercel redeploys automatically:
    ```bash
    git add .
    git commit -m "Update: <description>"
    git push origin main
    ```
-4. Deployment happens automatically!
-
----
-
-## Next Steps After Deployment
-
-- [ ] Add deployment status badge to README
-- [ ] Set up custom domain (optional)
-- [ ] Configure analytics (Google Analytics, optional)
-- [ ] Deploy backend to Railway (see DEPLOYMENT.md)
-- [ ] Set up monitoring (optional)
 
 ---
 
@@ -176,8 +134,9 @@ GIT_USER=NailaImran npm run deploy
 
 **Full Documentation:** See [DEPLOYMENT.md](DEPLOYMENT.md)
 
-**Issues:** https://github.com/NailaImran/learn-humanoid-robotics/issues
+**Issues:** https://github.com/NailaYaqoob/ai-driven-robo-book/issues
 
 ---
 
-**Ready to Deploy?** Just push to `main` and GitHub Actions handles the rest! 🚀
+**Ready to Deploy?** Push to `main` — Vercel (frontend) and Railway (backend)
+handle the rest! 🚀

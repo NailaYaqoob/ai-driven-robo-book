@@ -1,6 +1,9 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { useSession, signIn, signUp, signOut } from '../lib/auth-client';
 
+// Backend base URL, injected at build time (see docusaurus.config.js).
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 // Types
 export type Persona = 'student' | 'educator' | 'self_learner' | 'industry_professional' | null;
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | null;
@@ -110,7 +113,7 @@ export function PersonalizationProvider({ children }: Props) {
         return;
       }
 
-      const response = await fetch('/api/personalization/sync-from-localStorage', {
+      const response = await fetch(`${API_URL}/api/personalization/sync-from-localStorage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +145,7 @@ export function PersonalizationProvider({ children }: Props) {
         return;
       }
 
-      const response = await fetch('/api/personalization/profile', {
+      const response = await fetch(`${API_URL}/api/personalization/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
