@@ -18,7 +18,9 @@ const config = {
   // Repo metadata (used for edit links, etc.)
   organizationName: 'NailaYaqoob', // GitHub org/user name.
   projectName: 'ai-driven-robo-book', // Repo name.
-  trailingSlash: false,
+  // Emit each page as <route>/index.html so Vercel serves clean URLs without
+  // the file-vs-directory collision that trailingSlash:false caused on /docs/*.
+  trailingSlash: true,
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
