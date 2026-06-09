@@ -26,9 +26,13 @@ const config = {
   onBrokenMarkdownLinks: 'warn',
 
   // Internationalization
+  // Only English is active. ur/es are configured and scaffolded under i18n/
+  // but stay disabled until their docs are translated, so visitors don't see
+  // English content under /ur and /es. Re-enable by adding them to `locales`
+  // and restoring the localeDropdown navbar item.
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'ur', 'es'],
+    locales: ['en'],
     localeConfigs: {
       en: {
         label: 'English',
@@ -123,10 +127,11 @@ const config = {
             position: 'left',
             label: 'Textbook',
           },
-          {
-            type: 'localeDropdown',
-            position: 'right',
-          },
+          // Locale dropdown hidden until ur/es translations are ready.
+          // {
+          //   type: 'localeDropdown',
+          //   position: 'right',
+          // },
           {
             href: 'https://github.com/NailaImran/ai-driven-robo-book',
             label: 'GitHub',
