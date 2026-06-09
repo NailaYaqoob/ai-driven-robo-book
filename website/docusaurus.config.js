@@ -23,22 +23,26 @@ const config = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
-  // Internationalization (Urdu disabled until translations are added)
+  // Internationalization
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'], // Only English for now
+    locales: ['en', 'ur', 'es'],
     localeConfigs: {
       en: {
         label: 'English',
         direction: 'ltr',
         htmlLang: 'en-US',
       },
-      // Urdu will be enabled after translations are complete
-      // ur: {
-      //   label: 'اردو',
-      //   direction: 'rtl',
-      //   htmlLang: 'ur-PK',
-      // },
+      ur: {
+        label: 'اردو',
+        direction: 'rtl',
+        htmlLang: 'ur-PK',
+      },
+      es: {
+        label: 'Español',
+        direction: 'ltr',
+        htmlLang: 'es-ES',
+      },
     },
   },
 

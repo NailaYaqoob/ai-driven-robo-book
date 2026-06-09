@@ -1,0 +1,50 @@
+{
+  "link.title.Learn": {
+    "message": "Learn",
+    "description": "The title of the footer links column with title=Learn in the footer"
+  },
+  "link.title.Resources": {
+    "message": "Resources",
+    "description": "The title of the footer links column with title=Resources in the footer"
+  },
+  "link.title.Community": {
+    "message": "Community",
+    "description": "The title of the footer links column with title=Community in the footer"
+  },
+  "link.item.label.Introduction": {
+    "message": "Introduction",
+    "description": "The label of footer link with label=Introduction linking to /docs/introduction"
+  },
+  "link.item.label.Course Overview": {
+    "message": "Course Overview",
+    "description": "The label of footer link with label=Course Overview linking to /docs/introduction/course-overview"
+  },
+  "link.item.label.Capstone Project": {
+    "message": "Capstone Project",
+    "description": "The label of footer link with label=Capstone Project linking to /docs/capstone"
+  },
+  "link.item.label.ROS 2 Documentation": {
+    "message": "ROS 2 Documentation",
+    "description": "The label of footer link with label=ROS 2 Documentation linking to https://docs.ros.org/en/humble/"
+  },
+  "link.item.label.NVIDIA Isaac": {
+    "message": "NVIDIA Isaac",
+    "description": "The label of footer link with label=NVIDIA Isaac linking to https://developer.nvidia.com/isaac"
+  },
+  "link.item.label.Gazebo": {
+    "message": "Gazebo",
+    "description": "The label of footer link with label=Gazebo linking to https://gazebosim.org/"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/NailaImran/ai-driven-robo-book"
+  },
+  "link.item.label.Discussions": {
+    "message": "Discussions",
+    "description": "The label of footer link with label=Discussions linking to https://github.com/NailaImran/ai-driven-robo-book/discussions"
+  },
+  "copyright": {
+    "message": "Copyright © 2026 Physical AI & Humanoid Robotics Textbook. Built with Docusaurus.",
+    "description": "The footer copyright"
+  }
+}

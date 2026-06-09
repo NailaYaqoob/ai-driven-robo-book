@@ -1,0 +1,46 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docsSidebar.category.Introduction": {
+    "message": "Introduction",
+    "description": "The label for category 'Introduction' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Weeks 1-2: Physical AI Foundations": {
+    "message": "Weeks 1-2: Physical AI Foundations",
+    "description": "The label for category 'Weeks 1-2: Physical AI Foundations' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Module 1: ROS 2 Fundamentals (Weeks 3-5)": {
+    "message": "Module 1: ROS 2 Fundamentals (Weeks 3-5)",
+    "description": "The label for category 'Module 1: ROS 2 Fundamentals (Weeks 3-5)' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Module 2: Robot Simulation (Weeks 6-7)": {
+    "message": "Module 2: Robot Simulation (Weeks 6-7)",
+    "description": "The label for category 'Module 2: Robot Simulation (Weeks 6-7)' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Module 3: NVIDIA Isaac (Weeks 8-10)": {
+    "message": "Module 3: NVIDIA Isaac (Weeks 8-10)",
+    "description": "The label for category 'Module 3: NVIDIA Isaac (Weeks 8-10)' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Module 4: Humanoid Development (Weeks 11-12)": {
+    "message": "Module 4: Humanoid Development (Weeks 11-12)",
+    "description": "The label for category 'Module 4: Humanoid Development (Weeks 11-12)' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Week 13: Conversational Robotics": {
+    "message": "Week 13: Conversational Robotics",
+    "description": "The label for category 'Week 13: Conversational Robotics' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Hardware Requirements": {
+    "message": "Hardware Requirements",
+    "description": "The label for category 'Hardware Requirements' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Assessments": {
+    "message": "Assessments",
+    "description": "The label for category 'Assessments' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Capstone Project": {
+    "message": "Capstone Project",
+    "description": "The label for category 'Capstone Project' in sidebar 'docsSidebar'"
+  }
+}
